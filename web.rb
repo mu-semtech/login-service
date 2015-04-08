@@ -8,6 +8,15 @@ configure do
   set :sparql_client, SPARQL::Client.new('http://localhost:8890/sparql') 
 end
 
+
+###
+# Vocabularies
+###
+
+include RDF
+MU = RDF::Vocabulary.new('http://mu.semte.ch#')
+
+
 ###
 # POST /login
 #
@@ -36,13 +45,11 @@ post '/login' do
   request.body.rewind  # in case someone already read it
   data = JSON.parse request.body.read
 
-  query =  " PREFIX mu: <http://mu.semte.ch#>"
-  query += " PREFIX foaf: <http://xmlns.com/foaf/0.1/>"
-  query += " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
-  query += " ?uri a foaf:Account ;"
-  query += "        foaf:accountName '#{data['accountName'].downcase}' ; "
-  query += "        mu:password ?password ; "
-  query += "        mu:salt ?salt . "
+  query =k " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
+  query += " ?uri a <#{FOAF.OnlineAccount}> ;"
+  query += "        <#{FOAF.accountName}> '#{data['accountName'].downcase}' ; "
+  query += "        <#{MU.password}> ?password ; "
+  query += "        <#{MU.salt}> ?salt . "
   query += " }"
   result = settings.sparql_client.query query
 
@@ -60,10 +67,10 @@ post '/login' do
 
   query =  " WITH <#{settings.graph}> "
   query += " DELETE {"
-  query += "   ?session  <http://mu.semte.ch#session/account> <#{account[:uri].to_s}> ."
+  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ."
   query += " }"
   query += " WHERE {"
-  query += "   ?session  <http://mu.semte.ch#session/account> <#{account[:uri].to_s}> ."
+  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ."
   query += " }"
   settings.sparql_client.update(query)
 
@@ -74,7 +81,7 @@ post '/login' do
 
   query =  " INSERT DATA {"
   query += "   GRAPH <#{settings.graph}> {"
-  query += "     <#{session_uri}> <http://mu.semte.ch#session/account> <#{account[:uri].to_s}> ."
+  query += "     <#{session_uri}> <#{MU['session/account']}> <#{account[:uri].to_s}> ."
   query += "   }"
   query += " }"
   settings.sparql_client.update(query)
