@@ -89,7 +89,49 @@ post '/login' do
   status 200
 end
 
+
+###
+# POST /logout
+#
+# Returns 200 on successful logout
+#         400 if session header is missing or session header is invalid
+###
 post '/logout' do
   content_type :json
-  # TODO implement
+
+  ###
+  # Validate session
+  ###
+
+  session_uri = request.env['HTTP_MU_SESSION_ID']
+  halt 400, { error: 'Session header is missing' }.to_json if session_uri.nil?
+
+  ###
+  # Get account
+  ### 
+  query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
+  query += "   <#{session_uri}> <#{MU['session/account']}> ?account ."
+  query += "   ?account a <#{FOAF.OnlineAccount}> ."
+  query += " }"
+  result = settings.sparql_client.query query
+
+  halt 400, { error: 'Invalid session' }.to_json if result.empty?
+
+  account = result.first[:account].to_s
+
+
+  ###
+  # Remove session
+  ###
+
+  query =  " WITH <#{settings.graph}> "
+  query += " DELETE {"
+  query += "   ?session <#{MU['session/account']}> <#{account}> ."
+  query += " }"
+  query += " WHERE {"
+  query += "   ?session <#{MU['session/account']}> <#{account}> ."
+  query += " }"
+  settings.sparql_client.update(query)
+
+  status 200
 end
