@@ -45,7 +45,7 @@ post '/login' do
   request.body.rewind  # in case someone already read it
   data = JSON.parse request.body.read
 
-  query =k " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
+  query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
   query += " ?uri a <#{FOAF.OnlineAccount}> ;"
   query += "        <#{FOAF.accountName}> '#{data['accountName'].downcase}' ; "
   query += "        <#{MU.password}> ?password ; "
