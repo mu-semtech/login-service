@@ -1,9 +1,10 @@
 require 'sinatra'
 require 'sparql/client'
 require 'json'
-require 'bcrypt'
+require 'digest'
 
 configure do
+  set :salt, 'mysupersecretsaltchangeme'
   set :graph, 'http://mu.semte.ch/app' 
   set :sparql_client, SPARQL::Client.new('http://localhost:8890/sparql') 
 end
@@ -14,7 +15,7 @@ end
 ###
 
 include RDF
-MU = RDF::Vocabulary.new('http://mu.semte.ch#')
+MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabulary/')
 
 
 ###
@@ -35,7 +36,6 @@ post '/login' do
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
   halt 400, { error: 'Session header is missing' }.to_json if session_uri.nil?
-  # TODO validate if session isn't already associated with a user
 
 
   ###
@@ -54,11 +54,12 @@ post '/login' do
   result = settings.sparql_client.query query
 
   halt 401 if result.empty?
-
+ 
   account = result.first
-  db_password = BCrypt::Password.new(account[:password].to_s)
+  db_password = account[:password].to_s
+  password = Digest::MD5.new << data['password'] + settings.salt + account[:salt].to_s
 
-  halt 401 unless db_password == data['password']
+  halt 401 unless db_password == password.hexdigest
 
 
   ###

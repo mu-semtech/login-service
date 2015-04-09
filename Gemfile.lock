@@ -1,7 +1,6 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    bcrypt (3.1.9)
     json (1.8.2)
     link_header (0.0.8)
     net-http-persistent (2.9.4)
@@ -23,7 +22,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bcrypt
   json
   rdf
   sinatra
