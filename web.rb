@@ -48,8 +48,8 @@ post '/login' do
   query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
   query += " ?uri a <#{FOAF.OnlineAccount}> ;"
   query += "        <#{FOAF.accountName}> '#{data['accountName'].downcase}' ; "
-  query += "        <#{MU.password}> ?password ; "
-  query += "        <#{MU.salt}> ?salt . "
+  query += "        <#{MU['account/password']}> ?password ; "
+  query += "        <#{MU['account/salt']}> ?salt . "
   query += " }"
   result = settings.sparql_client.query query
 
