@@ -4,8 +4,8 @@ require 'json'
 require 'digest'
 
 configure do
-  set :salt, 'mysupersecretsaltchangeme'
-  set :graph, 'http://mu.semte.ch/app' 
+  set :salt, ENV['APPLICATION_SALT']
+  set :graph, ENV['APPLICATION_GRAPH']
   set :sparql_client, SPARQL::Client.new('http://localhost:8890/sparql') 
 end
 
@@ -106,6 +106,7 @@ post '/logout' do
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
   halt 400, { error: 'Session header is missing' }.to_json if session_uri.nil?
+
 
   ###
   # Get account
