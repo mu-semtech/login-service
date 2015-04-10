@@ -6,7 +6,7 @@ require 'digest'
 configure do
   set :salt, ENV['APPLICATION_SALT']
   set :graph, ENV['APPLICATION_GRAPH']
-  set :sparql_client, SPARQL::Client.new('http://localhost:8890/sparql') 
+  set :sparql_client, SPARQL::Client.new('http://database:8890/sparql') 
 end
 
 
