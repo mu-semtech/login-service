@@ -4,9 +4,9 @@ Login microservice using a triple store in the backend
 ## Running the login microservice
     docker run --name mu-login \
         -p 80:80 \
-        --link my-triple-store:database
-        -e MU_APPLICATION_GRAPH=http://mu.semte.ch/app
-        -e MU_APPLICATION_SALT=mysupersecretsaltchangeme
+        --link my-triple-store:database \
+        -e MU_APPLICATION_GRAPH=http://mu.semte.ch/app \
+        -e MU_APPLICATION_SALT=mysupersecretsaltchangeme \
 	-d semtech/login-service
         
 The triple store used in the backend is linked to the login service container as `database`. Make sure the login service is able to execute update queries against this store.
