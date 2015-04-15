@@ -35,7 +35,7 @@ post '/login' do
   ###
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
-  halt 400, { error: 'Session header is missing' }.to_json if session_uri.nil?
+  halt 400, { errors: { title: 'Session header is missing' } }.to_json if session_uri.nil?
 
 
   ###
@@ -105,7 +105,7 @@ post '/logout' do
   ###
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
-  halt 400, { error: 'Session header is missing' }.to_json if session_uri.nil?
+  halt 400, { errors: { title: 'Session header is missing' } }.to_json if session_uri.nil?
 
 
   ###
@@ -117,7 +117,7 @@ post '/logout' do
   query += " }"
   result = settings.sparql_client.query query
 
-  halt 400, { error: 'Invalid session' }.to_json if result.empty?
+  halt 400, { errors: { title: 'Invalid session' } }.to_json if result.empty?
 
   account = result.first[:account].to_s
 
