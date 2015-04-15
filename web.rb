@@ -21,7 +21,7 @@ MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabulary/')
 ###
 # POST /login
 #
-# Body    { "accountName": "john_doe", "password": "secret" }
+# Body    { "nickname": "john_doe", "password": "secret" }
 # Returns 200 on successful login
 #         400 if session header is missing
 #         401 on login failure
@@ -46,8 +46,8 @@ post '/login' do
   data = JSON.parse request.body.read
 
   query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
-  query += " ?uri a <#{FOAF.OnlineAccount}> ;"
-  query += "        <#{FOAF.accountName}> '#{data['accountName'].downcase}' ; "
+  query += "   ?uri a <#{FOAF.OnlineAccount}> ;"
+  query += "        <#{FOAF.accountName}> '#{data['nickname'].downcase}' ; "
   query += "        <#{MU['account/password']}> ?password ; "
   query += "        <#{MU['account/salt']}> ?salt . "
   query += " }"
