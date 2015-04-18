@@ -88,6 +88,8 @@ post '/login' do
   query += " }"
   settings.sparql_client.update(query)
 
+  update_modified(session_uri)
+
   status 200
 end
 
@@ -112,6 +114,7 @@ post '/logout' do
   ###
   # Get account
   ### 
+
   query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
   query += "   <#{session_uri}> <#{MU['session/account']}> ?account ."
   query += "   ?account a <#{FOAF.OnlineAccount}> ."
@@ -127,6 +130,13 @@ post '/logout' do
   # Remove session
   ###
 
+  query =  " SELECT ?uri FROM <#{settings.graph}> WHERE {"
+  query += "   ?uri <#{MU['session/account']}> <#{account}> ."
+  query += " }"
+  result = settings.sparql_client.query query
+
+  result.each { |session| update_modified(session[:uri]) }
+
   query =  " WITH <#{settings.graph}> "
   query += " DELETE {"
   query += "   ?session <#{MU['session/account']}> <#{account}> ."
@@ -137,4 +147,31 @@ post '/logout' do
   settings.sparql_client.update(query)
 
   status 200
+end
+
+
+###
+# Helpers
+###
+
+helpers do
+  def update_modified(subject, modified = DateTime.now.xmlschema)
+
+    query =  " WITH <#{settings.graph}> "
+    query += " DELETE {"
+    query += "   <#{subject}> <#{DC.modified}> ?modified ."
+    query += " }"
+    query += " WHERE {"
+    query += "   <#{subject}> <#{DC.modified}> ?modified ."
+    query += " }"
+    settings.sparql_client.update(query)
+
+    query =  " INSERT DATA {"
+    query += "   GRAPH <#{settings.graph}> {"
+    query += "     <#{subject}> <#{DC.modified}> \"#{modified}\"^^xsd:dateTime ."
+    query += "   }"
+    query += " }"
+    settings.sparql_client.update(query)
+
+  end
 end
