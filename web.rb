@@ -48,6 +48,7 @@ post '/login' do
   query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
   query += "   ?uri a <#{FOAF.OnlineAccount}> ;"
   query += "        <#{FOAF.accountName}> '#{data['nickname'].downcase}' ; "
+  query += "        <#{MU['account/status']}> <#{MU['account/status/active']}> ;"
   query += "        <#{MU['account/password']}> ?password ; "
   query += "        <#{MU['account/salt']}> ?salt . "
   query += " }"
