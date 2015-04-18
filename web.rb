@@ -24,7 +24,7 @@ MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabulary/')
 # Body    { "nickname": "john_doe", "password": "secret" }
 # Returns 200 on successful login
 #         400 if session header is missing
-#         401 on login failure
+#         400 on login failure (incorrect user/password or inactive account)
 ###
 post '/login' do
   content_type :json
@@ -42,7 +42,7 @@ post '/login' do
   # Validate login
   ###
 
-  request.body.rewind  # in case someone already read it
+  request.body.rewind
   data = JSON.parse request.body.read
 
   query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
@@ -54,13 +54,13 @@ post '/login' do
   query += " }"
   result = settings.sparql_client.query query
 
-  halt 401 if result.empty?
+  halt 400 if result.empty?
  
   account = result.first
   db_password = account[:password].to_s
   password = Digest::MD5.new << data['password'] + settings.salt + account[:salt].to_s
 
-  halt 401 unless db_password == password.hexdigest
+  halt 400 unless db_password == password.hexdigest
 
 
   ###
