@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sparql/client'
 require 'json'
 require 'digest'
+require 'securerandom'
 
 configure do
   set :salt, ENV['MU_APPLICATION_SALT']
@@ -19,35 +20,47 @@ MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabulary/')
 
 
 ###
-# POST /login
+# POST /sessions
 #
-# Body    { "nickname": "john_doe", "password": "secret" }
+# Body    {"data":{"type":"sessions","attributes":{"nickname":"john_doe","password":"secret"}}}
 # Returns 200 on successful login
 #         400 if session header is missing
 #         400 on login failure (incorrect user/password or inactive account)
 ###
-post '/login' do
+post '/sessions' do
   content_type :json
 
 
   ###
-  # Validate session
+  # Validate headers
   ###
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
-  halt 400, { errors: { title: 'Session header is missing' } }.to_json if session_uri.nil?
+  error('Session header is missing') if session_uri.nil?
+
+  rewrite_url = request.env['HTTP_X_REWRITE_URL']
+  error('X-Rewrite-URL header is missing') if rewrite_url.nil?
+
+
+  ###
+  # Validate request
+  ###
+
+  request.body.rewind
+  body = JSON.parse request.body.read
+  data = body['data']
+  attributes = data['attributes']
+
+  error('Incorrect type. Type must be sessions') if data['type'] != 'sessions'
 
 
   ###
   # Validate login
   ###
 
-  request.body.rewind
-  data = JSON.parse request.body.read
-
   query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
   query += "   ?uri a <#{FOAF.OnlineAccount}> ;"
-  query += "        <#{FOAF.accountName}> '#{data['nickname'].downcase}' ; "
+  query += "        <#{FOAF.accountName}> '#{attributes['nickname'].downcase}' ; "
   query += "        <#{MU['account/status']}> <#{MU['account/status/active']}> ;"
   query += "        <#{MU['account/password']}> ?password ; "
   query += "        <#{MU['account/salt']}> ?salt . "
@@ -58,7 +71,7 @@ post '/login' do
  
   account = result.first
   db_password = account[:password].to_s
-  password = Digest::MD5.new << data['password'] + settings.salt + account[:salt].to_s
+  password = Digest::MD5.new << attributes['password'] + settings.salt + account[:salt].to_s
 
   halt 400 unless db_password == password.hexdigest
 
@@ -69,10 +82,12 @@ post '/login' do
 
   query =  " WITH <#{settings.graph}> "
   query += " DELETE {"
-  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ."
+  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ;"
+  query += "            <#{MU.uuid}> ?id . "
   query += " }"
   query += " WHERE {"
-  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ."
+  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ;"
+  query += "            <#{MU.uuid}> ?id . "
   query += " }"
   settings.sparql_client.update(query)
 
@@ -81,26 +96,39 @@ post '/login' do
   # Insert new session
   ###
 
+  session_id = SecureRandom.uuid
+
   query =  " INSERT DATA {"
   query += "   GRAPH <#{settings.graph}> {"
-  query += "     <#{session_uri}> <#{MU['session/account']}> <#{account[:uri].to_s}> ."
+  query += "     <#{session_uri}> <#{MU['session/account']}> <#{account[:uri].to_s}> ;"
+  query += "                      <#{MU.uuid}> \"#{session_id}\" ."
   query += "   }"
   query += " }"
   settings.sparql_client.update(query)
 
   update_modified(session_uri)
 
-  status 200
+  status 201
+  {
+    data: {
+      type: 'sessions',
+      id: session_id,
+      links: {
+        self: rewrite_url.chomp('/') + '/' + session_id
+      }
+   }
+  }.to_json
+
 end
 
 
 ###
-# POST /logout
+# DELETE /sessions/current
 #
 # Returns 200 on successful logout
 #         400 if session header is missing or session header is invalid
 ###
-post '/logout' do
+delete '/sessions/current' do
   content_type :json
 
   ###
@@ -108,7 +136,7 @@ post '/logout' do
   ###
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
-  halt 400, { errors: { title: 'Session header is missing' } }.to_json if session_uri.nil?
+  error('Session header is missing') if session_uri.nil?
 
 
   ###
@@ -121,7 +149,7 @@ post '/logout' do
   query += " }"
   result = settings.sparql_client.query query
 
-  halt 400, { errors: { title: 'Invalid session' } }.to_json if result.empty?
+  error('Invalid session') if result.empty?
 
   account = result.first[:account].to_s
 
@@ -131,7 +159,8 @@ post '/logout' do
   ###
 
   query =  " SELECT ?uri FROM <#{settings.graph}> WHERE {"
-  query += "   ?uri <#{MU['session/account']}> <#{account}> ."
+  query += "   ?uri <#{MU['session/account']}> <#{account}> ;"
+  query += "        <#{MU.uuid}> ?id . "
   query += " }"
   result = settings.sparql_client.query query
 
@@ -139,14 +168,16 @@ post '/logout' do
 
   query =  " WITH <#{settings.graph}> "
   query += " DELETE {"
-  query += "   ?session <#{MU['session/account']}> <#{account}> ."
+  query += "   ?session <#{MU['session/account']}> <#{account}> ;"
+  query += "            <#{MU.uuid}> ?id . "
   query += " }"
   query += " WHERE {"
-  query += "   ?session <#{MU['session/account']}> <#{account}> ."
+  query += "   ?session <#{MU['session/account']}> <#{account}> ;"
+  query += "            <#{MU.uuid}> ?id . "
   query += " }"
   settings.sparql_client.update(query)
 
-  status 200
+  status 204
 end
 
 
@@ -174,4 +205,9 @@ helpers do
     settings.sparql_client.update(query)
 
   end
+
+  def error(title, status = 400)
+    halt status, { errors: [{ title: title }] }.to_json
+  end
+
 end
