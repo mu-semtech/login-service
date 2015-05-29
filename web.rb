@@ -27,7 +27,7 @@ MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabulary/')
 #         400 if session header is missing
 #         400 on login failure (incorrect user/password or inactive account)
 ###
-post '/sessions' do
+post '/sessions/?' do
   content_type :json
 
 
@@ -128,7 +128,7 @@ end
 # Returns 200 on successful logout
 #         400 if session header is missing or session header is invalid
 ###
-delete '/sessions/current' do
+delete '/sessions/current/?' do
   content_type :json
 
   ###
