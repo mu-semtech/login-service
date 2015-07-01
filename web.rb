@@ -28,12 +28,13 @@ MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabulary/')
 #         400 on login failure (incorrect user/password or inactive account)
 ###
 post '/sessions/?' do
-  content_type :json
+  content_type 'application/vnd.api+json'
 
 
   ###
   # Validate headers
   ###
+  error('Content-Type must be application/vnd.api+json') if not request.env['CONTENT_TYPE'] == 'application/vnd.api+json'
 
   session_uri = request.env['HTTP_MU_SESSION_ID']
   error('Session header is missing') if session_uri.nil?
@@ -51,7 +52,8 @@ post '/sessions/?' do
   data = body['data']
   attributes = data['attributes']
 
-  error('Incorrect type. Type must be sessions') if data['type'] != 'sessions'
+  error('Incorrect type. Type must be sessions', 409) if data['type'] != 'sessions'
+  error('Id paramater is not allowed', 403) if not data['id'].nil?
 
 
   ###
@@ -129,7 +131,7 @@ end
 #         400 if session header is missing or session header is invalid
 ###
 delete '/sessions/current/?' do
-  content_type :json
+  content_type 'application/vnd.api+json'
 
   ###
   # Validate session
