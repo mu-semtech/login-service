@@ -112,13 +112,13 @@ post '/sessions/?' do
 
   status 201
   {
+    links: {
+      self: rewrite_url.chomp('/') + '/' + session_id
+    },
     data: {
       type: 'sessions',
       id: session_id,
-      links: {
-        self: rewrite_url.chomp('/') + '/' + session_id
-      }
-   }
+    }
   }.to_json
 
 end
