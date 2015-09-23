@@ -69,13 +69,13 @@ post '/sessions/?' do
   query += " }"
   result = settings.sparql_client.query query
 
-  halt 400 if result.empty?
+  error('This combination of username and password cannot be found.') if result.empty?
  
   account = result.first
   db_password = account[:password].to_s
   password = Digest::MD5.new << attributes['password'] + settings.salt + account[:salt].to_s
 
-  halt 400 unless db_password == password.hexdigest
+  error('This combination of username and password cannot be found.') unless db_password == password.hexdigest
 
 
   ###
