@@ -113,7 +113,7 @@ post '/sessions/?' do
   status 201
   {
     links: {
-      self: rewrite_url.chomp('/') + '/' + session_id
+      self: rewrite_url.chomp('/') + '/current'
     },
     data: {
       type: 'sessions',
@@ -127,7 +127,7 @@ end
 ###
 # DELETE /sessions/current
 #
-# Returns 200 on successful logout
+# Returns 204 on successful logout
 #         400 if session header is missing or session header is invalid
 ###
 delete '/sessions/current/?' do
