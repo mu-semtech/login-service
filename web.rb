@@ -55,6 +55,8 @@ post '/sessions/?' do
   error('Incorrect type. Type must be sessions', 409) if data['type'] != 'sessions'
   error('Id paramater is not allowed', 403) if not data['id'].nil?
 
+  error('Nickname is required') if attributes['nickname'].nil?
+  error('Password is required') if attributes['password'].nil?
 
   ###
   # Validate login
