@@ -1,23 +1,9 @@
-require 'sinatra'
-require 'sparql/client'
-require 'json'
 require 'digest'
 require 'securerandom'
 
 configure do
   set :salt, ENV['MU_APPLICATION_SALT']
-  set :graph, ENV['MU_APPLICATION_GRAPH']
-  set :sparql_client, SPARQL::Client.new('http://database:8890/sparql') 
 end
-
-
-###
-# Vocabularies
-###
-
-include RDF
-MU = RDF::Vocabulary.new('http://mu.semte.ch/vocabularies/')
-
 
 ###
 # POST /sessions
@@ -34,12 +20,12 @@ post '/sessions/?' do
   ###
   # Validate headers
   ###
-  error('Content-Type must be application/vnd.api+json') if not request.env['CONTENT_TYPE'] == 'application/vnd.api+json'
+  validate_json_api_content_type(request)
 
-  session_uri = request.env['HTTP_MU_SESSION_ID']
-  error('Session header is missing') if session_uri.nil?
-
-  rewrite_url = request.env['HTTP_X_REWRITE_URL']
+  session_uri = session_id_header(request)
+  error('Session header is missing') if session_id_header.nil?
+  
+  rewrite_url = rewrite_url_header(request)
   error('X-Rewrite-URL header is missing') if rewrite_url.nil?
 
 
@@ -52,7 +38,7 @@ post '/sessions/?' do
   data = body['data']
   attributes = data['attributes']
 
-  error('Incorrect type. Type must be sessions', 409) if data['type'] != 'sessions'
+  validate_resource_type('sessions', data)
   error('Id paramater is not allowed', 403) if not data['id'].nil?
 
   error('Nickname is required') if attributes['nickname'].nil?
@@ -122,7 +108,7 @@ delete '/sessions/current/?' do
   # Get account
   ### 
 
-  result = select_account_by_session(session)
+  result = select_account_by_session(session_uri)
   error('Invalid session') if result.empty?
   account = result.first[:account].to_s
 
@@ -144,7 +130,6 @@ end
 ###
 
 helpers do
-  def update_modified(subject, modified = DateTime.now.xmlschema)
 
   def select_salted_password_and_salt_by_nickname(nickname)
     query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
@@ -179,9 +164,6 @@ helpers do
     query += " }"
     update(query)
   end
-
-  def error(title, status = 400)
-    halt status, { errors: [{ title: title }] }.to_json
   
   def select_account_by_session(session)
     query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
