@@ -62,14 +62,7 @@ post '/sessions/?' do
   # Validate login
   ###
 
-  query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
-  query += "   ?uri a <#{FOAF.OnlineAccount}> ;"
-  query += "        <#{FOAF.accountName}> '#{attributes['nickname'].downcase}' ; "
-  query += "        <#{MU['account/status']}> <#{MU['account/status/active']}> ;"
-  query += "        <#{MU['account/password']}> ?password ; "
-  query += "        <#{MU['account/salt']}> ?salt . "
-  query += " }"
-  result = settings.sparql_client.query query
+  result = select_salted_password_and_salt_by_nickname(attributes['nickname'])
 
   error('This combination of username and password cannot be found.') if result.empty?
  
@@ -83,17 +76,7 @@ post '/sessions/?' do
   ###
   # Remove old sessions
   ###
-
-  query =  " WITH <#{settings.graph}> "
-  query += " DELETE {"
-  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ;"
-  query += "            <#{MU.uuid}> ?id . "
-  query += " }"
-  query += " WHERE {"
-  query += "   ?session <#{MU['session/account']}> <#{account[:uri].to_s}> ;"
-  query += "            <#{MU.uuid}> ?id . "
-  query += " }"
-  settings.sparql_client.update(query)
+  remove_old_sessions_for_account(account[:uri].to_s)
 
 
   ###
@@ -101,15 +84,7 @@ post '/sessions/?' do
   ###
 
   session_id = SecureRandom.uuid
-
-  query =  " INSERT DATA {"
-  query += "   GRAPH <#{settings.graph}> {"
-  query += "     <#{session_uri}> <#{MU['session/account']}> <#{account[:uri].to_s}> ;"
-  query += "                      <#{MU.uuid}> \"#{session_id}\" ."
-  query += "   }"
-  query += " }"
-  settings.sparql_client.update(query)
-
+  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id)
   update_modified(session_uri)
 
   status 201
@@ -139,7 +114,7 @@ delete '/sessions/current/?' do
   # Validate session
   ###
 
-  session_uri = request.env['HTTP_MU_SESSION_ID']
+  session_uri = session_id_header()
   error('Session header is missing') if session_uri.nil?
 
 
@@ -147,14 +122,8 @@ delete '/sessions/current/?' do
   # Get account
   ### 
 
-  query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
-  query += "   <#{session_uri}> <#{MU['session/account']}> ?account ."
-  query += "   ?account a <#{FOAF.OnlineAccount}> ."
-  query += " }"
-  result = settings.sparql_client.query query
-
+  result = select_account_by_session(session)
   error('Invalid session') if result.empty?
-
   account = result.first[:account].to_s
 
 
@@ -162,24 +131,9 @@ delete '/sessions/current/?' do
   # Remove session
   ###
 
-  query =  " SELECT ?uri FROM <#{settings.graph}> WHERE {"
-  query += "   ?uri <#{MU['session/account']}> <#{account}> ;"
-  query += "        <#{MU.uuid}> ?id . "
-  query += " }"
-  result = settings.sparql_client.query query
-
+  result = select_current_session(account)
   result.each { |session| update_modified(session[:uri]) }
-
-  query =  " WITH <#{settings.graph}> "
-  query += " DELETE {"
-  query += "   ?session <#{MU['session/account']}> <#{account}> ;"
-  query += "            <#{MU.uuid}> ?id . "
-  query += " }"
-  query += " WHERE {"
-  query += "   ?session <#{MU['session/account']}> <#{account}> ;"
-  query += "            <#{MU.uuid}> ?id . "
-  query += " }"
-  settings.sparql_client.update(query)
+  delete_current_session(account)
 
   status 204
 end
@@ -192,26 +146,70 @@ end
 helpers do
   def update_modified(subject, modified = DateTime.now.xmlschema)
 
+  def select_salted_password_and_salt_by_nickname(nickname)
+    query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
+    query += "   ?uri a <#{FOAF.OnlineAccount}> ; "
+    query += "        <#{FOAF.accountName}> '#{nickname.downcase}' ; "
+    query += "        <#{MU['account/status']}> <#{MU['account/status/active']}> ; "
+    query += "        <#{MU['account/password']}> ?password ; "
+    query += "        <#{MU['account/salt']}> ?salt . "
+    query += " }"
+    query(query)
+  end
+
+  def remove_old_sessions_for_account(account)
     query =  " WITH <#{settings.graph}> "
     query += " DELETE {"
-    query += "   <#{subject}> <#{DC.modified}> ?modified ."
+    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
+    query += "            <#{MU.uuid}> ?id . "
     query += " }"
     query += " WHERE {"
-    query += "   <#{subject}> <#{DC.modified}> ?modified ."
+    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
+    query += "            <#{MU.uuid}> ?id . "
     query += " }"
-    settings.sparql_client.update(query)
+    update(query)
+  end
 
+  def insert_new_session_for_account(account, session_uri, session_id)
     query =  " INSERT DATA {"
     query += "   GRAPH <#{settings.graph}> {"
-    query += "     <#{subject}> <#{DC.modified}> \"#{modified}\"^^xsd:dateTime ."
+    query += "     <#{session_uri}> <#{MU['session/account']}> <#{account}> ;"
+    query += "                      <#{MU.uuid}> \"#{session_id}\" ."
     query += "   }"
     query += " }"
-    settings.sparql_client.update(query)
-
+    update(query)
   end
 
   def error(title, status = 400)
     halt status, { errors: [{ title: title }] }.to_json
+  
+  def select_account_by_session(session)
+    query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
+    query += "   <#{session}> <#{MU['session/account']}> ?account ."
+    query += "   ?account a <#{FOAF.OnlineAccount}> ."
+    query += " }"
+    query(query)
+  end
+  
+  def select_current_session(account)
+    query =  " SELECT ?uri FROM <#{settings.graph}> WHERE {"
+    query += "   ?uri <#{MU['session/account']}> <#{account}> ;"
+    query += "        <#{MU.uuid}> ?id . "
+    query += " }"
+    query(query)
   end
 
+  def delete_current_session(account)
+    query =  " WITH <#{settings.graph}> "
+    query += " DELETE {"
+    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
+    query += "            <#{MU.uuid}> ?id . "
+    query += " }"
+    query += " WHERE {"
+    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
+    query += "            <#{MU.uuid}> ?id . "
+    query += " }"
+    update(query)
+  end
+  
 end
