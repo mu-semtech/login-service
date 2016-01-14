@@ -23,7 +23,7 @@ post '/sessions/?' do
   validate_json_api_content_type(request)
 
   session_uri = session_id_header(request)
-  error('Session header is missing') if session_id_header.nil?
+  error('Session header is missing') if session_uri.nil?
   
   rewrite_url = rewrite_url_header(request)
   error('X-Rewrite-URL header is missing') if rewrite_url.nil?
