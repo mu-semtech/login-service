@@ -5,6 +5,13 @@ configure do
   set :salt, ENV['MU_APPLICATION_SALT']
 end
 
+
+###
+# Vocabularies
+###
+FOAF = RDF::Vocabulary.new('http://xmlns.com/foaf/0.1/')
+
+
 ###
 # POST /sessions
 #
