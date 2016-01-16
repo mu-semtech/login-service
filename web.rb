@@ -1,5 +1,4 @@
 require 'digest'
-require 'securerandom'
 
 configure do
   set :salt, ENV['MU_APPLICATION_SALT']
@@ -70,7 +69,7 @@ post '/sessions/?' do
   # Insert new session
   ###
 
-  session_id = SecureRandom.uuid
+  session_id = generate_uuid()
   insert_new_session_for_account(account[:uri].to_s, session_uri, session_id)
   update_modified(session_uri)
 
