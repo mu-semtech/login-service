@@ -7,12 +7,6 @@ end
 
 
 ###
-# Vocabularies
-###
-FOAF = RDF::Vocabulary.new('http://xmlns.com/foaf/0.1/')
-
-
-###
 # POST /sessions
 #
 # Body    {"data":{"type":"sessions","attributes":{"nickname":"john_doe","password":"secret"}}}
@@ -140,8 +134,8 @@ helpers do
 
   def select_salted_password_and_salt_by_nickname(nickname)
     query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
-    query += "   ?uri a <#{FOAF.OnlineAccount}> ; "
-    query += "        <#{FOAF.accountName}> '#{nickname.downcase}' ; "
+    query += "   ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ; "
+    query += "        <#{RDF::Vocab::FOAF.accountName}> '#{nickname.downcase}' ; "
     query += "        <#{MU['account/status']}> <#{MU['account/status/active']}> ; "
     query += "        <#{MU['account/password']}> ?password ; "
     query += "        <#{MU['account/salt']}> ?salt . "
@@ -175,7 +169,7 @@ helpers do
   def select_account_by_session(session)
     query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
     query += "   <#{session}> <#{MU['session/account']}> ?account ."
-    query += "   ?account a <#{FOAF.OnlineAccount}> ."
+    query += "   ?account a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
     query += " }"
     query(query)
   end
