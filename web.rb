@@ -100,7 +100,7 @@ delete '/sessions/current/?' do
   # Validate session
   ###
 
-  session_uri = session_id_header()
+  session_uri = session_id_header(request)
   error('Session header is missing') if session_uri.nil?
 
 
