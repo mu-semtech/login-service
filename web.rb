@@ -4,6 +4,13 @@ configure do
   set :salt, ENV['MU_APPLICATION_SALT']
 end
 
+###
+# Vocabularies
+###
+
+MU_ACCOUNT = RDF::Vocabulary.new(MU.to_uri.to_s + 'account/')
+MU_SESSION = RDF::Vocabulary.new(MU.to_uri.to_s + 'session/')
+
 
 ###
 # POST /sessions
@@ -135,9 +142,9 @@ helpers do
     query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
     query += "   ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ; "
     query += "        <#{RDF::Vocab::FOAF.accountName}> '#{nickname.downcase}' ; "
-    query += "        <#{MU['account/status']}> <#{MU['account/status/active']}> ; "
-    query += "        <#{MU['account/password']}> ?password ; "
-    query += "        <#{MU['account/salt']}> ?salt . "
+    query += "        <#{MU_ACCOUNT.status}> <#{MU_ACCOUNT['status/active']}> ; "
+    query += "        <#{MU_ACCOUNT.password}> ?password ; "
+    query += "        <#{MU_ACCOUNT.salt}> ?salt . "
     query += " }"
     query(query)
   end
@@ -145,12 +152,12 @@ helpers do
   def remove_old_sessions_for_account(account)
     query =  " WITH <#{settings.graph}> "
     query += " DELETE {"
-    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
-    query += "            <#{MU.uuid}> ?id . "
+    query += "   ?session <#{MU_SESSION.account}> <#{account}> ;"
+    query += "            <#{MU_CORE.uuid}> ?id . "
     query += " }"
     query += " WHERE {"
-    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
-    query += "            <#{MU.uuid}> ?id . "
+    query += "   ?session <#{MU_SESSION.account}> <#{account}> ;"
+    query += "            <#{MU_CORE.uuid}> ?id . "
     query += " }"
     update(query)
   end
@@ -158,8 +165,8 @@ helpers do
   def insert_new_session_for_account(account, session_uri, session_id)
     query =  " INSERT DATA {"
     query += "   GRAPH <#{settings.graph}> {"
-    query += "     <#{session_uri}> <#{MU['session/account']}> <#{account}> ;"
-    query += "                      <#{MU.uuid}> \"#{session_id}\" ."
+    query += "     <#{session_uri}> <#{MU_SESSION.account}> <#{account}> ;"
+    query += "                      <#{MU_CORE.uuid}> \"#{session_id}\" ."
     query += "   }"
     query += " }"
     update(query)
@@ -167,7 +174,7 @@ helpers do
   
   def select_account_by_session(session)
     query =  " SELECT ?account FROM <#{settings.graph}> WHERE {"
-    query += "   <#{session}> <#{MU['session/account']}> ?account ."
+    query += "   <#{session}> <#{MU_SESSION.account}> ?account ."
     query += "   ?account a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
     query += " }"
     query(query)
@@ -175,8 +182,8 @@ helpers do
   
   def select_current_session(account)
     query =  " SELECT ?uri FROM <#{settings.graph}> WHERE {"
-    query += "   ?uri <#{MU['session/account']}> <#{account}> ;"
-    query += "        <#{MU.uuid}> ?id . "
+    query += "   ?uri <#{MU_SESSION.account}> <#{account}> ;"
+    query += "        <#{MU_CORE.uuid}> ?id . "
     query += " }"
     query(query)
   end
@@ -184,12 +191,12 @@ helpers do
   def delete_current_session(account)
     query =  " WITH <#{settings.graph}> "
     query += " DELETE {"
-    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
-    query += "            <#{MU.uuid}> ?id . "
+    query += "   ?session <#{MU_SESSION.account}> <#{account}> ;"
+    query += "            <#{MU_CORE.uuid}> ?id . "
     query += " }"
     query += " WHERE {"
-    query += "   ?session <#{MU['session/account']}> <#{account}> ;"
-    query += "            <#{MU.uuid}> ?id . "
+    query += "   ?session <#{MU_SESSION.account}> <#{account}> ;"
+    query += "            <#{MU_CORE.uuid}> ?id . "
     query += " }"
     update(query)
   end
