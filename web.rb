@@ -69,7 +69,7 @@ post '/sessions/?' do
   ###
   # Remove old sessions
   ###
-  remove_old_sessions_for_account(account[:uri].to_s)
+  remove_old_sessions(session_uri)
 
 
   ###
@@ -149,15 +149,15 @@ helpers do
     query(query)
   end
 
-  def remove_old_sessions_for_account(account)
+  def remove_old_sessions(session)
     query =  " WITH <#{settings.graph}> "
     query += " DELETE {"
-    query += "   ?session <#{MU_SESSION.account}> <#{account}> ;"
-    query += "            <#{MU_CORE.uuid}> ?id . "
+    query += "   <#{session}> <#{MU_SESSION.account}> ?account ;"
+    query += "                <#{MU_CORE.uuid}> ?id . "
     query += " }"
     query += " WHERE {"
-    query += "   ?session <#{MU_SESSION.account}> <#{account}> ;"
-    query += "            <#{MU_CORE.uuid}> ?id . "
+    query += "   <#{session}> <#{MU_SESSION.account}> ?account ;"
+    query += "                <#{MU_CORE.uuid}> ?id . "
     query += " }"
     update(query)
   end
