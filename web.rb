@@ -60,8 +60,8 @@ post '/sessions/?' do
   error('This combination of username and password cannot be found.') if result.empty?
  
   account = result.first
-  db_password = account[:password].to_s
-  password = BCrypt::Password.create attributes['password'] + settings.salt + account[:salt].to_s
+  db_password = BCrypt::Password.new account[:password].to_s
+  password = attributes['password'] + settings.salt + account[:salt].to_s
 
   error('This combination of username and password cannot be found.') unless db_password == password
 
