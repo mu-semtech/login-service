@@ -61,9 +61,9 @@ post '/sessions/?' do
  
   account = result.first
   db_password = account[:password].to_s
-  password = Digest::MD5.new << attributes['password'] + settings.salt + account[:salt].to_s
+  password = BCrypt::Password.create attributes['password'] + settings.salt + account[:salt].to_s
 
-  error('This combination of username and password cannot be found.') unless db_password == password.hexdigest
+  error('This combination of username and password cannot be found.') unless db_password == password
 
 
   ###
