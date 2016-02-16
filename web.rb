@@ -1,4 +1,4 @@
-require 'digest'
+require 'bcrypt'
 
 configure do
   set :salt, ENV['MU_APPLICATION_SALT']
