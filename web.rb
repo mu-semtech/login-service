@@ -41,7 +41,7 @@ post '/sessions/?' do
   ###
 
   request.body.rewind
-  body = JSON.parse request.body.read
+  body = MultiJson.load request.body.read
   data = body['data']
   attributes = data['attributes']
 
@@ -81,7 +81,7 @@ post '/sessions/?' do
   update_modified(session_uri)
 
   status 201
-  {
+  MultiJson.dump({
     links: {
       self: rewrite_url.chomp('/') + '/current'
     },
@@ -89,7 +89,7 @@ post '/sessions/?' do
       type: 'sessions',
       id: session_id,
     }
-  }.to_json
+  })
 
 end
 
