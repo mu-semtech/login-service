@@ -87,11 +87,20 @@ post '/sessions/?' do
     },
     data: {
       type: 'sessions',
-      id: session_id,
-      account_id: account[:uuid]
+      id: session_id
+    },
+    relationships: {
+      account: {
+        links: {
+          related: "/accounts/#{account[:uuid]}"
+        },
+        data: { 
+          type: "accounts", 
+          id: account[:uuid]
+        }
       }
+    }
   }.to_json
-
 end
 
 
