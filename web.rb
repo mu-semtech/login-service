@@ -87,10 +87,20 @@ post '/sessions/?' do
     },
     data: {
       type: 'sessions',
-      id: session_id,
+      id: session_id
+    },
+    relationships: {
+      account: {
+        links: {
+          related: "/accounts/#{account[:uuid]}"
+        },
+        data: { 
+          type: "accounts", 
+          id: account[:uuid]
+        }
+      }
     }
   }.to_json
-
 end
 
 
@@ -139,12 +149,13 @@ end
 helpers do
 
   def select_salted_password_and_salt_by_nickname(nickname)
-    query =  " SELECT ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
+    query =  " SELECT ?uuid ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
     query += "   ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ; "
     query += "        <#{RDF::Vocab::FOAF.accountName}> '#{nickname.downcase}' ; "
     query += "        <#{MU_ACCOUNT.status}> <#{MU_ACCOUNT['status/active']}> ; "
     query += "        <#{MU_ACCOUNT.password}> ?password ; "
-    query += "        <#{MU_ACCOUNT.salt}> ?salt . "
+    query += "        <#{MU_ACCOUNT.salt}> ?salt ; "
+    query += "        <#{MU_CORE.uuid}> ?uuid"
     query += " }"
     query(query)
   end
