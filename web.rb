@@ -134,6 +134,34 @@ end
 
 
 ###
+# GET /sessions/current
+#
+# Returns 204 if current session exists
+#         400 if session header is missing or session header is invalid
+###
+get '/sessions/current/?' do
+  content_type 'application/vnd.api+json'
+
+  ###
+  # Validate session
+  ###
+
+  session_uri = session_id_header(request)
+  error('Session header is missing') if session_uri.nil?
+
+
+  ###
+  # Get account
+  ###
+
+  result = select_account_by_session(session_uri)
+  error('Invalid session') if result.empty?
+
+  status 204
+end
+
+
+###
 # Helpers
 ###
 
