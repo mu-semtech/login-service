@@ -166,8 +166,31 @@ get '/sessions/current/?' do
 
   result = select_account_by_session(session_uri)
   error('Invalid session') if result.empty?
+  account = result.first
 
-  status 204
+  rewrite_url = rewrite_url_header(request)
+
+  status 200
+ {
+    links: {
+      self: rewrite_url.chomp('/')
+    },
+    data: {
+      type: 'sessions',
+      id: session_uri
+    },
+    relationships: {
+      account: {
+        links: {
+          related: "/accounts/#{account[:uuid]}"
+        },
+        data: { 
+          type: "accounts", 
+          id: account[:uuid]
+        }
+      }
+    }
+  }.to_json
 end
 
 
