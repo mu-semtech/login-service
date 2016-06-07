@@ -17,7 +17,7 @@ MU_SESSION = RDF::Vocabulary.new(MU.to_uri.to_s + 'session/')
 # POST /sessions
 #
 # Body    {"data":{"type":"sessions","attributes":{"nickname":"john_doe","password":"secret"}}}
-# Returns 200 on successful login
+# Returns 201 on successful login
 #         400 if session header is missing
 #         400 on login failure (incorrect user/password or inactive account)
 ###
