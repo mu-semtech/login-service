@@ -4,7 +4,7 @@ module LoginService
     def select_salted_password_and_salt_by_nickname(nickname)
       query =  " SELECT ?uuid ?uri ?password ?salt FROM <#{settings.graph}> WHERE {"
       query += "   ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ; "
-      query += "        <#{RDF::Vocab::FOAF.accountName}> '#{nickname.downcase}' ; "
+      query += "        <#{RDF::Vocab::FOAF.accountName}> #{nickname.downcase.sparql_escape} ; "
       query += "        <#{MU_ACCOUNT.status}> <#{MU_ACCOUNT['status/active']}> ; "
       query += "        <#{MU_ACCOUNT.password}> ?password ; "
       query += "        <#{MU_ACCOUNT.salt}> ?salt ; "
@@ -30,7 +30,7 @@ module LoginService
       query =  " INSERT DATA {"
       query += "   GRAPH <#{settings.graph}> {"
       query += "     <#{session_uri}> <#{MU_SESSION.account}> <#{account}> ;"
-      query += "                      <#{MU_CORE.uuid}> \"#{session_id}\" ."
+      query += "                      <#{MU_CORE.uuid}> #{session_id.sparql_escape} ."
       query += "   }"
       query += " }"
       update(query)
