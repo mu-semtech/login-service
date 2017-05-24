@@ -41,9 +41,7 @@ post '/sessions/?' do
   # Validate request
   ###
 
-  request.body.rewind
-  body = JSON.parse request.body.read
-  data = body['data']
+  data = @json_body['data']
   attributes = data['attributes']
 
   validate_resource_type('sessions', data)
