@@ -1,9 +1,4 @@
-require 'bcrypt'
 require_relative 'login_service/sparql_queries.rb'
-
-configure do
-  set :salt, ENV['MU_APPLICATION_SALT']
-end
 
 ###
 # Vocabularies
@@ -11,17 +6,28 @@ end
 
 MU_ACCOUNT = RDF::Vocabulary.new(MU.to_uri.to_s + 'account/')
 MU_SESSION = RDF::Vocabulary.new(MU.to_uri.to_s + 'session/')
-
+BESLUIT =  RDF::Vocabulary.new('http://data.vlaanderen.be/ns/besluit#')
 
 ###
 # POST /sessions
 #
-# Body    {"data":{"type":"sessions","attributes":{"nickname":"john_doe","password":"secret"}}}
+# Body
+# data: {
+#   relationships: {
+#     account:{
+#       data: {
+#         id: "account_id",
+#         type: "accounts"
+#       }
+#     }
+#   },
+#   type: "sessions"
+# }
 # Returns 201 on successful login
 #         400 if session header is missing
 #         400 on login failure (incorrect user/password or inactive account)
 ###
-post '/sessions/?' do
+post '/sessions/' do
   content_type 'application/vnd.api+json'
 
 
@@ -32,7 +38,7 @@ post '/sessions/?' do
 
   session_uri = session_id_header(request)
   error('Session header is missing') if session_uri.nil?
-  
+
   rewrite_url = rewrite_url_header(request)
   error('X-Rewrite-URL header is missing') if rewrite_url.nil?
 
@@ -42,41 +48,34 @@ post '/sessions/?' do
   ###
 
   data = @json_body['data']
-  attributes = data['attributes']
 
   validate_resource_type('sessions', data)
-  error('Id paramater is not allowed', 403) if not data['id'].nil?
+  error('Id paramater is not allowed', 400) if not data['id'].nil?
+  error('exactly one account should be linked') unless data.dig("relationships","account", "data", "id")
+  error('exactly one group should be linked') unless data.dig("relationships","group", "data", "id")
 
-  error('Nickname is required') if attributes['nickname'].nil?
-  error('Password is required') if attributes['password'].nil?
 
   ###
   # Validate login
   ###
 
-  result = select_salted_password_and_salt_by_nickname(attributes['nickname'])
-
-  error('This combination of username and password cannot be found.') if result.empty?
- 
+  result = select_account(data["relationships"]["account"]["data"]["id"])
+  error('account not found.', 400) if result.empty?
   account = result.first
-  db_password = BCrypt::Password.new account[:password].to_s
-  password = attributes['password'] + settings.salt + account[:salt].to_s
 
-  error('This combination of username and password cannot be found.') unless db_password == password
-
-
+  result = select_group(data["relationships"]["group"]["data"]["id"])
+  error('group not found', 400) if result.empty?
+  group = result.first
   ###
   # Remove old sessions
   ###
   remove_old_sessions(session_uri)
 
-
   ###
   # Insert new session
   ###
-
   session_id = generate_uuid()
-  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id)
+  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id, group[:group].to_s)
   update_modified(session_uri)
 
   status 201
@@ -93,9 +92,18 @@ post '/sessions/?' do
         links: {
           related: "/accounts/#{account[:uuid]}"
         },
-        data: { 
-          type: "accounts", 
+        data: {
+          type: "accounts",
           id: account[:uuid]
+        }
+      },
+      group: {
+        links: {
+          related: "/bestuurseenheden/#{group[:uuid]}"
+        },
+        data: {
+          type: "bestuurseenheden",
+          id: group[:uuid]
         }
       }
     }
@@ -182,8 +190,8 @@ get '/sessions/current/?' do
         links: {
           related: "/accounts/#{account[:uuid]}"
         },
-        data: { 
-          type: "accounts", 
+        data: {
+          type: "accounts",
           id: account[:uuid]
         }
       }
