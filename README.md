@@ -1,22 +1,13 @@
-# Login microservice
-Login microservice running on [mu.semte.ch](http://mu.semte.ch).
+# Mock Login microservice
+This is a login microservice running on [mu.semte.ch](http://mu.semte.ch). The microservice provides the necessary endpoints to link the current session to a provided user and group.
 
 ## Integrate login service in a mu.semte.ch project
 Add the following snippet to your `docker-compose.yml` to include the login service in your project.
 
 ```
 login:
-  image: semtech/mu-login-service:2.8.0
-  links:
-    - database:database
+  image: lblod/mock-login-service
 ```
-
-The triple store used in the backend is linked to the login service container as `database`. If you configure another SPARQL endpoint URL through `MU_SPARQL_ENDPOINT` update the link name accordingly. Make sure the login service is able to execute update queries against this store.
-
-To strengthen the password hashing, you can configure an application wide salt through the `MU_APPLICATION_SALT` environment variable. This salt will be concatenated with a salt generated per user to hash the user passwords. By default the application wide salt is not set. If you configure this salt, make sure to configure the [registration microservice](https://github.com/mu-semtech/registration-service) with the same salt.
-
-The `MU_APPLICATION_GRAPH` environment variable (default: `http://mu.semte.ch/application`) specifies the graph in the triple store the login service will work in.
-
 
 Add rules to the `dispatcher.ex` to dispatch requests to the login service. E.g. 
 
@@ -37,14 +28,22 @@ Log in, i.e. create a new session for an account specified by its nickname and p
 
 ##### Request body
 ```javascript
-{
-  "data": {
-    "type": "sessions",
-    "attributes": {
-      "nickname": "john_doe",
-      "password": "secret"
-    }
-  }
+data: {
+   relationships: {
+     account:{
+       data: {
+         id: "account_id",
+         type: "accounts"
+       }
+     },
+     group:{
+       data: {
+         id: "group_id",
+         type: "groups"
+       }
+     }, 
+   },
+   type: "sessions"
 }
 ```
 
@@ -70,6 +69,15 @@ On successful login with the newly created session in the response body:
         "type": "accounts",
         "id": "f6419af0-c90f-465f-9333-e993c43e6cf2"
       }
+    },
+    "group": {
+      "links": {
+        "related": "/groups/f6419af0-c60f-465f-9333-e993c43e6ch5"
+      },
+      "data": {
+        "type": "groups",
+        "id": "f6419af0-c60f-465f-9333-e993c43e6ch5"
+      }
     }
   }
 }
@@ -77,9 +85,7 @@ On successful login with the newly created session in the response body:
 
 ###### 400 Bad Request
 - if session header is missing. The header should be automatically set by the [identifier](https://github.com/mu-semtech/mu-identifier).
-- if combination of nickname and password is incorrect.
-- if account is inactive.
-
+- if the group or account doesn't exist
 
 
 #### DELETE /sessions/current
