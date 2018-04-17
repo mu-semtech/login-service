@@ -37,10 +37,11 @@ module LoginService
     end
 
     def select_account_by_session(session)
-      query =  " SELECT ?uuid ?account ?group FROM <#{settings.graph}> WHERE {"
+      query =  " SELECT ?group_uuid ?account_uuid ?account FROM <#{settings.graph}> WHERE {"
       query += "   <#{session}> <#{MU_SESSION.account}> ?account ;"
       query += "                <#{MU_SESSION.group}> ?group ."
-      query += "   ?account <#{MU_CORE.uuid}> ?uuid ."
+      query += "   ?group <#{MU_CORE.uuid}> ?group_uuid ."
+      query += "   ?account <#{MU_CORE.uuid}> ?account_uuid ."
       query += "   ?account a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
       query += " }"
       query(query)

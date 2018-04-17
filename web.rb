@@ -90,20 +90,20 @@ post '/sessions/' do
     relationships: {
       account: {
         links: {
-          related: "/accounts/#{account[:uuid]}"
+          related: "/accounts/#{data['relationships']['account']['data']['id']}"
         },
         data: {
           type: "accounts",
-          id: account[:uuid]
+          id: data['relationships']['account']['data']['id']
         }
       },
       group: {
         links: {
-          related: "/bestuurseenheden/#{group[:uuid]}"
+          related: "/bestuurseenheden/#{data['relationships']['group']['data']['id']}"
         },
         data: {
           type: "bestuurseenheden",
-          id: group[:uuid]
+          id: data['relationships']['group']['data']['id']
         }
       }
     }
@@ -172,14 +172,14 @@ get '/sessions/current/?' do
 
   result = select_account_by_session(session_uri)
   error('Invalid session') if result.empty?
-  account = result.first
+  session = result.first
 
   rewrite_url = rewrite_url_header(request)
 
   status 200
- {
+  {
     links: {
-      self: rewrite_url.chomp('/')
+      self: rewrite_url.chomp('/') + '/current'
     },
     data: {
       type: 'sessions',
@@ -188,11 +188,20 @@ get '/sessions/current/?' do
     relationships: {
       account: {
         links: {
-          related: "/accounts/#{account[:uuid]}"
+          related: "/accounts/#{session[:account_uuid]}"
         },
         data: {
           type: "accounts",
-          id: account[:uuid]
+          id: session[:account_uuid]
+        }
+      },
+      group: {
+        links: {
+          related: "/bestuurseenheden/#{session[:group_uuid]}"
+        },
+        data: {
+          type: "bestuurseenheden",
+          id: session[:group_uuid]
         }
       }
     }
