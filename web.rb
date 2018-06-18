@@ -66,6 +66,11 @@ post '/sessions/' do
   result = select_group(data["relationships"]["group"]["data"]["id"])
   error('group not found', 400) if result.empty?
   group = result.first
+
+  result = select_roles(data["relationships"]["account"]["data"]["id"])
+  error('roles not found', 400) if result.empty?
+  roles = result.map { |r| r[:role].to_s }
+
   ###
   # Remove old sessions
   ###
@@ -75,7 +80,7 @@ post '/sessions/' do
   # Insert new session
   ###
   session_id = generate_uuid()
-  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id, group[:group].to_s)
+  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id, group[:group].to_s, roles)
   update_modified(session_uri)
 
   status 201

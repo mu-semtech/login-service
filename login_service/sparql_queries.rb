@@ -17,12 +17,15 @@ module LoginService
       update(query)
     end
 
-    def insert_new_session_for_account(account, session_uri, session_id, group_uri)
+    def insert_new_session_for_account(account, session_uri, session_id, group_uri, roles)
       query =  " INSERT DATA {"
       query += "   GRAPH <#{settings.graph}> {"
       query += "     <#{session_uri}> <#{MU_SESSION.account}> <#{account}> ;"
       query += "                      <#{MU_EXT.sessionGroup}> <#{group_uri}> ;"
       query += "                      <#{MU_CORE.uuid}> #{session_id.sparql_escape} ."
+      roles.each do |role|
+        query += "   <#{session_uri}> <#{MU_EXT.sessionRole}> #{role.sparql_escape} ."
+      end
       query += "   }"
       query += " }"
       update(query)
@@ -75,6 +78,15 @@ module LoginService
       query =  " SELECT ?uri FROM <#{settings.graph}> WHERE {"
       query += "   ?uri <#{MU_CORE.uuid}> \"#{id}\" ."
       query += "   ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
+      query += " }"
+      query(query)
+    end
+
+    def select_roles(account_id)
+      query =  " SELECT ?role FROM <#{settings.graph}> WHERE {"
+      query += "   ?uri <#{MU_CORE.uuid}> \"#{account_id}\" ."
+      query += "   ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
+      query += "   ?uri <#{MU_EXT.sessionRole}> ?role."
       query += " }"
       query(query)
     end
