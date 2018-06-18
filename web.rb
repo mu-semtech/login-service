@@ -152,7 +152,7 @@ end
 ###
 # GET /sessions/current
 #
-# Returns 204 if current session exists
+# Returns 200 if current session exists
 #         400 if session header is missing or session header is invalid
 ###
 get '/sessions/current/?' do
