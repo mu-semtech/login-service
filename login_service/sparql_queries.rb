@@ -1,7 +1,7 @@
 module LoginService
   module SparqlQueries
     def remove_old_sessions(session)
-      query += " DELETE WHERE {"
+      query = " DELETE WHERE {"
       query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"
       query += "     <#{session}> <#{MU_SESSION.account}> ?account ;"
       query += "                  <#{MU_CORE.uuid}> ?id ; "
@@ -80,10 +80,12 @@ module LoginService
       query += "   }"
       query += "   GRAPH ?g {"
       query += "     ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ;"
-      query += "          <#{MU_CORE.uuid}> \"#{id}\" ;"
-      query += "          <#{RDF::Vocab::FOAF.member}> ?group ."
+      query += "          <#{MU_CORE.uuid}> \"#{id}\" ."
+      query += "     ?person a <#{RDF::Vocab::FOAF.Person}> ;"
+      query += "             <#{RDF::Vocab::FOAF.account}> ?uri ;"
+      query += "             <#{RDF::Vocab::FOAF.member}> ?group ."
       query += "   }"
-      query += "   FILTER(?g = IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)))"
+      query += "   BIND(IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)) as ?g)"
       query += " }"
       query(query)
     end
@@ -107,11 +109,13 @@ module LoginService
       query += "   }"
       query += "   GRAPH ?g {"
       query += "     ?uri a <#{RDF::Vocab::FOAF.OnlineAccount}> ;"
-      query += "            <#{MU_CORE.uuid}> \"#{id}\" ;"
-      query += "            <#{MU_EXT.sessionRole}> ?role ;"
-      query += "            <#{RDF::Vocab::FOAF.member}> ?group ."
+      query += "            <#{MU_CORE.uuid}> \"#{account_id}\" ;"
+      query += "            <#{MU_EXT.sessionRole}> ?role ."
+      query += "     ?person a <#{RDF::Vocab::FOAF.Person}> ;"
+      query += "             <#{RDF::Vocab::FOAF.account}> ?uri ;"
+      query += "             <#{RDF::Vocab::FOAF.member}> ?group ."
       query += "   }"
-      query += "   FILTER(?g = IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)))"
+      query += "   BIND(IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)) as ?g)"
       query += " }"
       query(query)
     end
