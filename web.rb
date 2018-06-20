@@ -1,5 +1,9 @@
 require_relative 'login_service/sparql_queries.rb'
 
+## Monkeypatch sparql-client with mu-auth-sudo header
+require_relative 'auth_extensions/sudo'
+include AuthExtensions::Sudo
+
 ###
 # Vocabularies
 ###
