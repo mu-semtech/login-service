@@ -67,7 +67,8 @@ post '/sessions/' do
   error('account not found.', 400) if result.empty?
   account = result.first
 
-  result = select_group(data["relationships"]["group"]["data"]["id"])
+  group_id = data["relationships"]["group"]["data"]["id"]
+  result = select_group(group_id)
   error('group not found', 400) if result.empty?
   group = result.first
 
@@ -84,8 +85,7 @@ post '/sessions/' do
   # Insert new session
   ###
   session_id = generate_uuid()
-  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id, group[:group].to_s, roles)
-  update_modified(session_uri)
+  insert_new_session_for_account(account[:uri].to_s, session_uri, session_id, group[:group].to_s, group_id, roles)
 
   status 201
   headers['mu-auth-allowed-groups'] = 'CLEAR'
@@ -151,8 +151,6 @@ delete '/sessions/current/?' do
   # Remove session
   ###
 
-  result = select_current_session(account)
-  result.each { |session| update_modified(session[:uri]) }
   delete_current_session(account)
 
   status 204
