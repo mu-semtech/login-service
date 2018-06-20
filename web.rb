@@ -84,6 +84,7 @@ post '/sessions/' do
   update_modified(session_uri)
 
   status 201
+  headers['mu-auth-allowed-groups'] = 'CLEAR'
   {
     links: {
       self: rewrite_url.chomp('/') + '/current'
@@ -151,6 +152,7 @@ delete '/sessions/current/?' do
   delete_current_session(account)
 
   status 204
+  headers['mu-auth-allowed-groups'] = 'CLEAR'
 end
 
 
