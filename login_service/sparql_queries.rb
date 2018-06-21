@@ -16,7 +16,8 @@ module LoginService
     def insert_new_session_for_account(account, session_uri, session_id, group_uri, group_id, roles)
       now = DateTime.now
 
-      query =  " INSERT DATA {"
+      query =  " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
+      query += " INSERT DATA {"
       query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"
       query += "     <#{session_uri}> <#{MU_SESSION.account}> <#{account}> ;"
       query += "                      <#{RDF::Vocab::DC.modified}> #{now.sparql_escape} ;"
@@ -44,7 +45,7 @@ module LoginService
       query += "     ?account a <#{RDF::Vocab::FOAF.OnlineAccount}> ;"
       query += "              <#{MU_CORE.uuid}> ?account_uuid ."
       query += "   }"
-      query += "   FILTER(?g = IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)))"
+      query += "   FILTER(?g = IRI(CONCAT(\"http://mu.semte.ch/graphs/organizations/\", ?group_uuid)))"
       query += " }"
       query(query)
     end
@@ -85,7 +86,7 @@ module LoginService
       query += "             <#{RDF::Vocab::FOAF.account}> ?uri ;"
       query += "             <#{RDF::Vocab::FOAF.member}> ?group ."
       query += "   }"
-      query += "   BIND(IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)) as ?g)"
+      query += "   BIND(IRI(CONCAT(\"http://mu.semte.ch/graphs/organizations/\", ?group_uuid)) as ?g)"
       query += " }"
       query(query)
     end
@@ -115,7 +116,7 @@ module LoginService
       query += "             <#{RDF::Vocab::FOAF.account}> ?uri ;"
       query += "             <#{RDF::Vocab::FOAF.member}> ?group ."
       query += "   }"
-      query += "   BIND(IRI(CONCAT(\"http://mu.semte.ch/graphs/org/\", ?group_uuid)) as ?g)"
+      query += "   BIND(IRI(CONCAT(\"http://mu.semte.ch/graphs/organizations/\", ?group_uuid)) as ?g)"
       query += " }"
       query(query)
     end
