@@ -61,7 +61,7 @@ module LoginService
     end
 
     def delete_current_session(account)
-      query += " DELETE WHERE {"
+      query = " DELETE WHERE {"
       query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"
       query += "     ?session <#{MU_SESSION.account}> <#{account}> ;"
       query += "              <#{MU_CORE.uuid}> ?id ; "
