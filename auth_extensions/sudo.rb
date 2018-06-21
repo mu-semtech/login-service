@@ -4,7 +4,7 @@ module AuthExtensions
       log.info('Create sudo SPARQL client')
       if @sparql_client.nil?
         options = {
-          headers: { 'mu-sudo-auth': 'true' }
+          headers: { 'mu-auth-sudo': 'true' }
         }
         if ENV['MU_SPARQL_TIMEOUT']
           options[:read_timeout] = ENV['MU_SPARQL_TIMEOUT'].to_i
