@@ -95,7 +95,10 @@ post '/sessions/' do
     },
     data: {
       type: 'sessions',
-      id: session_id
+      id: session_id,
+      attributes: {
+        roles: roles
+      }
     },
     relationships: {
       account: {
@@ -140,7 +143,7 @@ delete '/sessions/current/?' do
 
   ###
   # Get account
-  ### 
+  ###
 
   result = select_account_by_session(session_uri)
   error('Invalid session') if result.empty?
@@ -192,7 +195,10 @@ get '/sessions/current/?' do
     },
     data: {
       type: 'sessions',
-      id: session_uri
+      id: session[:session_uuid],
+      attributes: {
+        roles: session[:roles].to_s.split(',')
+      }
     },
     relationships: {
       account: {
