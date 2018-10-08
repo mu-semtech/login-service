@@ -1,5 +1,7 @@
+require_relative '/usr/src/app/sinatra_template/utils.rb'
 module LoginService
   module SparqlQueries
+    include SinatraTemplate::Utils
     def remove_old_sessions(session)
       query = " DELETE WHERE {"
       query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"
@@ -33,12 +35,12 @@ module LoginService
 
     def select_account_by_session(session)
       query =  " SELECT ?group_uuid ?account_uuid ?account WHERE {"
-      query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"      
+      query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"
       query += "     <#{session}> <#{MU_SESSION.account}> ?account ;"
       query += "                  <#{MU_EXT.sessionGroup}> ?group ."
       query += "   }"
-      query += "   GRAPH <http://mu.semte.ch/graphs/public> {"
-      query += "     ?group a <#{BESLUIT.Bestuurseenheid}> ;"      
+      query += "   GRAPH <#{graph}> {"
+      query += "     ?group a <#{BESLUIT.Bestuurseenheid}> ;"
       query += "            <#{MU_CORE.uuid}> ?group_uuid ."
       query += "   }"
       query += "   GRAPH ?g {"
@@ -52,7 +54,7 @@ module LoginService
 
     def select_current_session(account)
       query =  " SELECT ?uri WHERE {"
-      query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"      
+      query += "   GRAPH <http://mu.semte.ch/graphs/sessions> {"
       query += "     ?uri <#{MU_SESSION.account}> <#{account}> ;"
       query += "        <#{MU_CORE.uuid}> ?id . "
       query += "   }"
@@ -75,8 +77,8 @@ module LoginService
 
     def select_account(id)
       query =  " SELECT ?uri WHERE {"
-      query += "   GRAPH <http://mu.semte.ch/graphs/public> {"      
-      query += "     ?group a <#{BESLUIT.Bestuurseenheid}> ;"      
+      query += "   GRAPH <#{graph}> {"
+      query += "     ?group a <#{BESLUIT.Bestuurseenheid}> ;"
       query += "            <#{MU_CORE.uuid}> ?group_uuid ."
       query += "   }"
       query += "   GRAPH ?g {"
@@ -93,7 +95,7 @@ module LoginService
 
     def select_group(group_id)
       query =  " SELECT ?group WHERE {"
-      query += "   GRAPH <http://mu.semte.ch/graphs/public> {"
+      query += "   GRAPH <#{graph}> {"
       query += "      ?group a <#{BESLUIT.Bestuurseenheid}> ;"
       query += "               <#{MU_CORE.uuid}> \"#{group_id}\" ."
       query += "   }"
@@ -104,8 +106,8 @@ module LoginService
 
     def select_roles(account_id)
       query =  " SELECT ?role WHERE {"
-      query += "   GRAPH <http://mu.semte.ch/graphs/public> {"      
-      query += "     ?group a <#{BESLUIT.Bestuurseenheid}> ;"      
+      query += "   GRAPH <#{graph}> {"
+      query += "     ?group a <#{BESLUIT.Bestuurseenheid}> ;"
       query += "            <#{MU_CORE.uuid}> ?group_uuid ."
       query += "   }"
       query += "   GRAPH ?g {"
