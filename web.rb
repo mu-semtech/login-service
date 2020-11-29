@@ -32,7 +32,7 @@ post '/sessions/?' do
 
   session_uri = session_id_header(request)
   error('Session header is missing') if session_uri.nil?
-  
+
   rewrite_url = rewrite_url_header(request)
   error('X-Rewrite-URL header is missing') if rewrite_url.nil?
 
@@ -57,7 +57,7 @@ post '/sessions/?' do
   result = select_salted_password_and_salt_by_nickname(attributes['nickname'])
 
   error('This combination of username and password cannot be found.') if result.empty?
- 
+
   account = result.first
   db_password = BCrypt::Password.new account[:password].to_s
   password = attributes['password'] + settings.salt + account[:salt].to_s
@@ -93,8 +93,8 @@ post '/sessions/?' do
         links: {
           related: "/accounts/#{account[:uuid]}"
         },
-        data: { 
-          type: "accounts", 
+        data: {
+          type: "accounts",
           id: account[:uuid]
         }
       }
@@ -122,7 +122,7 @@ delete '/sessions/current/?' do
 
   ###
   # Get account
-  ### 
+  ###
 
   result = select_account_by_session(session_uri)
   error('Invalid session') if result.empty?
@@ -182,8 +182,8 @@ get '/sessions/current/?' do
         links: {
           related: "/accounts/#{account[:uuid]}"
         },
-        data: { 
-          type: "accounts", 
+        data: {
+          type: "accounts",
           id: account[:uuid]
         }
       }
