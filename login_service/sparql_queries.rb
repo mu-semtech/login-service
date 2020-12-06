@@ -48,8 +48,10 @@ module LoginService
 
     def select_account_by_session(session)
       query =  " SELECT ?uuid ?account WHERE {"
-      query += "   GRAPH <#{USERS_GRAPH}> {"
+      query += "   GRAPH <#{SESSIONS_GRAPH}> {"
       query += "     <#{session}> <#{MU_SESSION.account}> ?account ."
+      query += "   }"
+      query += "   GRAPH <#{USERS_GRAPH}> {"
       query += "     ?account <#{MU_CORE.uuid}> ?uuid ;"
       query += "              a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
       query += "   }"
@@ -59,7 +61,7 @@ module LoginService
 
     def select_current_session(account)
       query =  " SELECT ?uri WHERE {"
-      query += "   GRAPH <#{USERS_GRAPH}> {"
+      query += "   GRAPH <#{SESSIONS_GRAPH}> {"
       query += "     ?uri <#{MU_SESSION.account}> <#{account}> ;"
       query += "          <#{MU_CORE.uuid}> ?id . "
       query += "   }"
@@ -68,7 +70,7 @@ module LoginService
     end
 
     def delete_current_session(account)
-      query += " DELETE {"
+      query = " DELETE {"
       query += "   GRAPH <#{SESSIONS_GRAPH}> {"
       query += "     ?session <#{MU_SESSION.account}> <#{account}> ;"
       query += "              <#{MU_CORE.uuid}> ?id . "
