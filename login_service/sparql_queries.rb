@@ -85,5 +85,26 @@ module LoginService
       Mu::AuthSudo.update(query)
     end
 
+    def update_modified(session, modified = DateTime.now)
+      query = " DELETE {"
+      query += "   GRAPH <#{SESSIONS_GRAPH}> {"
+      query += "     <#{session}> <#{RDF::Vocab::DC.modified}> ?modified ."
+      query += "   }"
+      query += " }"
+      query += " WHERE {"
+      query += "   GRAPH <#{SESSIONS_GRAPH}> {"
+      query += "     <#{session}> <#{RDF::Vocab::DC.modified}> ?modified ."
+      query += "   }"
+      query += " }"
+      update(query)
+
+      query =  " INSERT DATA {"
+      query += "   GRAPH <#{SESSIONS_GRAPH}> {"
+      query += "     <#{session}> <#{RDF::Vocab::DC.modified}> #{modified.sparql_escape} ."
+      query += "   }"
+      query += " }"
+      update(query)
+    end
+
   end
 end
