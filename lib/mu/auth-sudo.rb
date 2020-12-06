@@ -1,4 +1,10 @@
 require 'sparql/client'
+require 'logger'
+
+log_dir = '/logs'
+Dir.mkdir(log_dir) unless Dir.exist?(log_dir)
+log = Logger.new("#{log_dir}/application.log")
+log.level = Kernel.const_get("Logger::#{ENV['LOG_LEVEL'].upcase}")
 
 module Mu
   module AuthSudo
@@ -18,12 +24,12 @@ module Mu
     end
 
     def self.query(query)
-      puts "Executing sudo query: #{query}"
+      log.info "Executing sudo query: #{query}"
       sparql_client.query query
     end
 
     def self.update(query)
-      puts "Executing sudo update: #{query}"
+      log.info "Executing sudo update: #{query}"
       sparql_client.update query
     end
   end
