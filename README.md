@@ -1,7 +1,8 @@
 # Login microservice
 Login microservice running on [mu.semte.ch](http://mu.semte.ch).
 
-## Integrate login service in a mu.semte.ch project
+## Tutorials
+### Add the login service to a stack
 Add the following snippet to your `docker-compose.yml` to include the login service in your project.
 
 ```
@@ -11,27 +12,29 @@ login:
     - database:database
 ```
 
-The triple store used in the backend is linked to the login service container as `database`. If you configure another SPARQL endpoint URL through `MU_SPARQL_ENDPOINT` update the link name accordingly. Make sure the login service is able to execute update queries against this store.
+The triplestore used in the backend is linked to the login service container as `database`.
 
-To strengthen the password hashing, you can configure an application wide salt through the `MU_APPLICATION_SALT` environment variable. This salt will be concatenated with a salt generated per user to hash the user passwords. By default the application wide salt is not set. If you configure this salt, make sure to configure the [registration microservice](https://github.com/mu-semtech/registration-service) with the same salt.
-
-The `MU_APPLICATION_GRAPH` environment variable (default: `http://mu.semte.ch/application`) specifies the graph in the triple store the login service will work in.
-
-
-Add rules to the `dispatcher.ex` to dispatch requests to the login service. E.g. 
+Next, add the following rules in `./config/dispatcher/dispatcher.ex` to dispatch requests to the login service. E.g.
 
 ```
-  match "/sessions/*path" do
+  match "/sessions/*path", @any do
     Proxy.forward conn, path, "http://login/sessions/"
   end
 ```
+
 The host `login` in the forward URL reflects the name of the login service in the `docker-compose.yml` file as defined above.
 
 More information how to setup a mu.semte.ch project can be found in [mu-project](https://github.com/mu-semtech/mu-project).
 
+## Reference
+### Configuration
+The following enviroment variables can be set on the login service:
 
-## Available requests
+- **USERS_GRAPH** : graph in which the person and account resources will be stored. E.g. `http://mu.semte.ch/graphs/users`. Defaults to `http://mu.semte.ch/application`.
+- **SESSIONS_GRAPH** : graph in which the session resources will be stored. E.g. `http://mu.semte.ch/graphs/sessions`. Defaults to `http://mu.semte.ch/application`.
+- **MU_APPLICATION_SALT** : strengthen the password hashing by configuring an application wide salt. This salt will be concatenated with a salt generated per user to hash the user passwords. By default the application wide salt is not set. If you configure this salt, make sure to configure the [registration microservice](https://github.com/mu-semtech/registration-service) with the same salt. Setting the salt makes account resources non-shareable with stacks containing a login-service configured with another salt.
 
+### API
 #### POST /sessions
 Log in, i.e. create a new session for an account specified by its nickname and password.
 
@@ -91,3 +94,5 @@ On successful logout
 
 ###### 400 Bad Request
 If session header is missing or invalid. The header should be automatically set by the [identifier](https://github.com/mu-semtech/mu-identifier).
+
+
