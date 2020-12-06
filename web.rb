@@ -33,9 +33,7 @@ post '/sessions/?' do
   session_uri = session_id_header(request)
   error('Session header is missing') if session_uri.nil?
 
-  rewrite_url = rewrite_url_header(request)
-  error('X-Rewrite-URL header is missing') if rewrite_url.nil?
-
+  rewrite_url = rewrite_url_header(request) || ''
 
   ###
   # Validate request
