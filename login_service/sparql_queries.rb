@@ -1,4 +1,4 @@
-require 'mu/auth-sudo'
+require_relative '../lib/mu/auth-sudo'
 
 USERS_GRAPH = ENV['USERS_GRAPH'] || "http://mu.semte.ch/application"
 SESSIONS_GRAPH = ENV['SESSIONS_GRAPH'] || "http://mu.semte.ch/application"
