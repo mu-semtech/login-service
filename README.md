@@ -34,6 +34,40 @@ The following enviroment variables can be set on the login service:
 - **SESSIONS_GRAPH** : graph in which the session resources will be stored. E.g. `http://mu.semte.ch/graphs/sessions`. Defaults to `http://mu.semte.ch/application`.
 - **MU_APPLICATION_SALT** : strengthen the password hashing by configuring an application wide salt. This salt will be concatenated with a salt generated per user to hash the user passwords. By default the application wide salt is not set. If you configure this salt, make sure to configure the [registration microservice](https://github.com/mu-semtech/registration-service) with the same salt. Setting the salt makes account resources non-shareable with stacks containing a login-service configured with another salt.
 
+### Model
+This section describes the minimal required model for the login service. These models can be enriched with additional properties and/or relations.
+
+The graphs is which the resources are stored, can be configured via environment variables.
+
+#### Used prefixes
+| Prefix  | URI                                      |
+|---------|------------------------------------------|
+| mu      | http://mu.semte.ch/vocabularies/core/    |
+| account | http://mu.semte.ch/vocabularies/account/ |
+| session | http://mu.semte.ch/vocabularies/session/ |
+| foaf    | http://xmlns.com/foaf/0.1/               |
+
+#### Accounts
+##### Class
+`foaf:OnlineAccount`
+
+##### Properties
+| Name        | Predicate          | Range           | Definition                                                                                                                            |
+|-------------|--------------------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| accountName | `foaf:accountName` | `xsd:string`    | Account name / nickname                                                                                                               |
+| password    | `account:password` | `xsd:string`    | Hashed password of the account                                                                                                        |
+| salt        | `account:salt`     | `xsd:string`    | Salt used to hash the password                                                                                                        |
+| status      | `account:status`   | `rdfs:Resource` | Status of the account. Only active (`<http://mu.semte.ch/vocabularies/account/status/active>`) accounts are taken into account on login. |
+
+#### Sessions
+##### Class
+None
+
+##### Properties
+| Name    | Predicate         | Range                | Definition                     |
+|---------|-------------------|----------------------|--------------------------------|
+| account | `session:account` | `foaf:OnlineAccount` | Account related to the session |
+
 ### API
 #### POST /sessions
 Log in, i.e. create a new session for an account specified by its nickname and password.
