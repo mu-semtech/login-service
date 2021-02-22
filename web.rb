@@ -112,10 +112,10 @@ post '/sessions/' do
       },
       group: {
         links: {
-          related: "/bestuurseenheden/#{data['relationships']['group']['data']['id']}"
+          related: "/groups/#{data['relationships']['group']['data']['id']}"
         },
         data: {
-          type: "bestuurseenheden",
+          type: "groups",
           id: data['relationships']['group']['data']['id']
         }
       }
@@ -212,10 +212,10 @@ get '/sessions/current/?' do
       },
       group: {
         links: {
-          related: "/bestuurseenheden/#{session[:group_uuid]}"
+          related: "/groups/#{session[:group_uuid]}"
         },
         data: {
-          type: "bestuurseenheden",
+          type: "groups",
           id: session[:group_uuid]
         }
       }
