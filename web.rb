@@ -76,8 +76,8 @@ post '/sessions/?' do
   session_id = generate_uuid()
   insert_new_session_for_account(account[:uri].to_s, session_uri, session_id)
   update_modified(session_uri)
-
   status 201
+  headers['mu-auth-allowed-groups'] = 'CLEAR'
   {
     links: {
       self: rewrite_url.chomp('/') + '/current'
@@ -136,6 +136,7 @@ delete '/sessions/current/?' do
   delete_current_session(account)
 
   status 204
+  headers['mu-auth-allowed-groups'] = 'CLEAR'
 end
 
 

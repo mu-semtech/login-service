@@ -96,14 +96,14 @@ module LoginService
       query += "     <#{session}> <#{RDF::Vocab::DC.modified}> ?modified ."
       query += "   }"
       query += " }"
-      update(query)
+      Mu::AuthSudo.update(query)
 
       query =  " INSERT DATA {"
       query += "   GRAPH <#{SESSIONS_GRAPH}> {"
       query += "     <#{session}> <#{RDF::Vocab::DC.modified}> #{modified.sparql_escape} ."
       query += "   }"
       query += " }"
-      update(query)
+      Mu::AuthSudo.update(query)
     end
 
   end
