@@ -73,7 +73,7 @@ None
 Log in, i.e. create a new session for an account specified by its nickname and password.
 
 ##### Request body
-```javascript
+```json
 {
   "data": {
     "type": "sessions",
@@ -89,24 +89,24 @@ Log in, i.e. create a new session for an account specified by its nickname and p
 ###### 201 Created
 On successful login with the newly created session in the response body:
 
-```javascript
+```json
 {
   "links": {
     "self": "sessions/current"
   },
   "data": {
     "type": "sessions",
-    "id": "b178ba66-206e-4551-b41e-4a46983912c0"
-  },
-  "relationships": {
-    "account": {
-      "links": {
-        "related": "/accounts/f6419af0-c90f-465f-9333-e993c43e6cf2"
-      },
-      "data": {
-        "type": "accounts",
-        "id": "f6419af0-c90f-465f-9333-e993c43e6cf2"
-      }
+    "id": "b178ba66-206e-4551-b41e-4a46983912c0",
+    "relationships": {
+        "account": {
+            "links": {
+                "related": "/accounts/f6419af0-c90f-465f-9333-e993c43e6cf2"
+            },
+            "data": {
+                "type": "accounts",
+                "id": "f6419af0-c90f-465f-9333-e993c43e6cf2"
+            }
+        }
     }
   }
 }

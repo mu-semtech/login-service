@@ -84,16 +84,16 @@ post '/sessions/?' do
     },
     data: {
       type: 'sessions',
-      id: session_id
-    },
-    relationships: {
-      account: {
-        links: {
-          related: "/accounts/#{account[:uuid]}"
-        },
-        data: {
-          type: "accounts",
-          id: account[:uuid]
+      id: session_id,
+      relationships: {
+        account: {
+          links: {
+            related: "/accounts/#{account[:uuid]}"
+          },
+          data: {
+            type: "accounts",
+            id: account[:uuid]
+          }
         }
       }
     }
@@ -174,16 +174,16 @@ get '/sessions/current/?' do
     },
     data: {
       type: 'sessions',
-      id: session_uri
-    },
-    relationships: {
-      account: {
-        links: {
-          related: "/accounts/#{account[:uuid]}"
-        },
-        data: {
-          type: "accounts",
-          id: account[:uuid]
+      id: session_uri,
+      relationships: {
+        account: {
+          links: {
+            related: "/accounts/#{account[:uuid]}"
+          },
+          data: {
+            type: "accounts",
+            id: account[:uuid]
+          }
         }
       }
     }
