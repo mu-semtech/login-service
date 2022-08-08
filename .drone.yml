@@ -6,7 +6,7 @@ steps:
 - name: build-and-push
   image: plugins/docker
   settings:
-    repo: semtech/mu-login-service
+    repo: ${DRONE_REPO_NAMESPACE/mu-semtech/semtech}/mu-${DRONE_REPO_NAME}
     username:
       from_secret: docker_username
     password:
@@ -20,12 +20,33 @@ trigger:
 ---
 kind: pipeline
 type: docker
+name: push-feature-build
+steps:
+- name: push-feature-build
+  image: plugins/docker
+  settings:
+    repo: ${DRONE_REPO_NAMESPACE/mu-semtech/semtech}/mu-${DRONE_REPO_NAME}
+    tags: ${DRONE_BRANCH/\//-}
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    purge: true
+trigger:
+  branch:
+    - "*/*"
+  event:
+    exclude:
+      - pull_request
+---
+kind: pipeline
+type: docker
 name: push-release
 steps:
 - name: build-and-push-tag
   image: plugins/docker
   settings:
-    repo: semtech/mu-login-service
+    repo: ${DRONE_REPO_NAMESPACE/mu-semtech/semtech}/mu-${DRONE_REPO_NAME}
     tags: ${DRONE_TAG##v} # strips v from the tag
     username:
       from_secret: docker_username
@@ -42,7 +63,7 @@ steps:
 - name: dry-run
   image: plugins/docker
   settings:
-    repo: semtech/mu-login-service
+    repo: ${DRONE_REPO_NAMESPACE/mu-semtech/semtech}/mu-${DRONE_REPO_NAME}
     dry_run: true
 trigger:
   event:
@@ -57,6 +78,6 @@ name: docker_password
 data: 3yHEDnppaM71XZuW1iFUYMOb9b6zv0jDFPWoPZxB64cCZb8I9JavZ2k19WFehclekxk/bMT7DoUDwl7LwZRRJA==
 ---
 kind: signature
-hmac: 1c804364da50fe8f0925842eb9f35c3c17f33b276d8cdd73f530b01f04c8c04b
+hmac: 20d6e08720a894e9d056bbf43f037015d9686c23a362bc0e6481c30a4577246b
 
 ...
