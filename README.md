@@ -129,4 +129,9 @@ On successful logout
 ###### 400 Bad Request
 If session header is missing or invalid. The header should be automatically set by the [identifier](https://github.com/mu-semtech/mu-identifier).
 
+### Releases
+#### v3.0.0
+Breaking changes:
+- Make responses JSON-API compliant by moving `relationships` into `data` object. It has become a child rather than a sibling. 
 
+  You may need to change `data.authenticated.relationships.account.data.id` in the frontend to `data.authenticated.data.relationships.account.data.id` in order to consume the response data. 
