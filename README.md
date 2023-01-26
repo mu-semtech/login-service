@@ -1,7 +1,7 @@
 # Login microservice
 Login microservice running on [mu.semte.ch](http://mu.semte.ch).
 
-## Tutorials
+## How-To
 ### Add the login service to a stack
 Add the following snippet to your `docker-compose.yml` to include the login service in your project.
 
@@ -25,6 +25,9 @@ Next, add the following rules in `./config/dispatcher/dispatcher.ex` to dispatch
 The host `login` in the forward URL reflects the name of the login service in the `docker-compose.yml` file as defined above.
 
 More information how to setup a mu.semte.ch project can be found in [mu-project](https://github.com/mu-semtech/mu-project).
+
+## Tutorials
+A tutorial using this repository can be found at https://github.com/mu-semtech/mu-project#adding-authentication-to-your-mu-project
 
 ## Reference
 ### Configuration
