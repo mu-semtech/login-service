@@ -1,5 +1,3 @@
-require_relative '../lib/mu/auth-sudo'
-
 USERS_GRAPH = ENV['USERS_GRAPH'] || "http://mu.semte.ch/application"
 SESSIONS_GRAPH = ENV['SESSIONS_GRAPH'] || "http://mu.semte.ch/application"
 
@@ -17,7 +15,7 @@ module LoginService
       query += "        <#{MU_CORE.uuid}> ?uuid"
       query += "   }"
       query += " }"
-      Mu::AuthSudo.query(query)
+      Mu::query(query, sudo: true)
     end
 
     def remove_old_sessions(session)
@@ -33,7 +31,7 @@ module LoginService
       query += "                <#{MU_CORE.uuid}> ?id . "
       query += "   }"
       query += " }"
-      Mu::AuthSudo.update(query)
+      Mu::update(query, sudo: true)
     end
 
     def insert_new_session_for_account(account, session_uri, session_id)
@@ -43,7 +41,7 @@ module LoginService
       query += "                      <#{MU_CORE.uuid}> #{session_id.sparql_escape} ."
       query += "   }"
       query += " }"
-      Mu::AuthSudo.update(query)
+      Mu::update(query, sudo: true)
     end
 
     def select_account_by_session(session)
@@ -56,7 +54,7 @@ module LoginService
       query += "              a <#{RDF::Vocab::FOAF.OnlineAccount}> ."
       query += "   }"
       query += " }"
-      Mu::AuthSudo.query(query)
+      Mu::query(query, sudo: true)
     end
 
     def select_current_session(account)
@@ -66,7 +64,7 @@ module LoginService
       query += "          <#{MU_CORE.uuid}> ?id . "
       query += "   }"
       query += " }"
-      Mu::AuthSudo.query(query)
+      Mu::query(query, sudo: true)
     end
 
     def delete_current_session(account)
@@ -82,10 +80,10 @@ module LoginService
       query += "              <#{MU_CORE.uuid}> ?id . "
       query += "   }"
       query += " }"
-      Mu::AuthSudo.update(query)
+      Mu::update(query, sudo: true)
     end
 
-    def update_modified(session, modified = DateTime.now)
+    def update_session_modified(session, modified = DateTime.now)
       query = " DELETE {"
       query += "   GRAPH <#{SESSIONS_GRAPH}> {"
       query += "     <#{session}> <#{RDF::Vocab::DC.modified}> ?modified ."
@@ -96,14 +94,14 @@ module LoginService
       query += "     <#{session}> <#{RDF::Vocab::DC.modified}> ?modified ."
       query += "   }"
       query += " }"
-      Mu::AuthSudo.update(query)
+      Mu::update(query, sudo: true)
 
       query =  " INSERT DATA {"
       query += "   GRAPH <#{SESSIONS_GRAPH}> {"
       query += "     <#{session}> <#{RDF::Vocab::DC.modified}> #{modified.sparql_escape} ."
       query += "   }"
       query += " }"
-      Mu::AuthSudo.update(query)
+      Mu::update(query, sudo: true)
     end
 
   end
