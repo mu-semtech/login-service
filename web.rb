@@ -75,7 +75,7 @@ post '/sessions/?' do
 
   session_id = generate_uuid()
   insert_new_session_for_account(account[:uri].to_s, session_uri, session_id)
-  update_modified(session_uri)
+  update_session_modified(session_uri)
   status 201
   headers['mu-auth-allowed-groups'] = 'CLEAR'
   {
@@ -132,7 +132,7 @@ delete '/sessions/current/?' do
   ###
 
   result = select_current_session(account)
-  result.each { |session| update_modified(session[:uri]) }
+  result.each { |session| update_session_modified(session[:uri]) }
   delete_current_session(account)
 
   status 204
