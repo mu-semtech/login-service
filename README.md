@@ -36,6 +36,7 @@ The following enviroment variables can be set on the login service:
 - **USERS_GRAPH** : graph in which the person and account resources will be stored. E.g. `http://mu.semte.ch/graphs/users`. Defaults to `http://mu.semte.ch/application`.
 - **SESSIONS_GRAPH** : graph in which the session resources will be stored. E.g. `http://mu.semte.ch/graphs/sessions`. Defaults to `http://mu.semte.ch/application`.
 - **MU_APPLICATION_SALT** : strengthen the password hashing by configuring an application wide salt. This salt will be concatenated with a salt generated per user to hash the user passwords. By default the application wide salt is not set. If you configure this salt, make sure to configure the [registration microservice](https://github.com/mu-semtech/registration-service) with the same salt. Setting the salt makes account resources non-shareable with stacks containing a login-service configured with another salt.
+- **DEFAULT_MU_AUTH_SCOPE**: URI identifying the service scope sent in the `mu-auth-scope` header (defaults to `http://services.semantic.works/login-service`). Allows the service to execute SPARQL queries with scoped access permissions instead of bypassing authorization (`mu-auth-sudo`).
 
 ### Model
 This section describes the minimal required model for the login service. These models can be enriched with additional properties and/or relations.
@@ -138,3 +139,11 @@ Breaking changes:
 - Make responses JSON-API compliant by moving `relationships` into `data` object. It has become a child rather than a sibling. 
 
   You may need to change `data.authenticated.relationships.account.data.id` in the frontend to `data.authenticated.data.relationships.account.data.id` in order to consume the response data. 
+
+#### v3.1.0
+- Upgrade to `semtech/mu-ruby-template:3.2.1` (Ruby 3.4)
+- Use built-in sudo query support via `ALLOW_MU_AUTH_SUDO` instead of hand-rolled `Mu::AuthSudo`
+
+#### new-version-placeholder
+- Convert service to a scoped service using `DEFAULT_MU_AUTH_SCOPE`
+- Remove `ALLOW_MU_AUTH_SUDO` and execute SPARQL queries with scoped access instead of sudo
