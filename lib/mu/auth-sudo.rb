@@ -20,7 +20,7 @@ module Mu
       if ENV['MU_SPARQL_TIMEOUT']
         options[:read_timeout] = ENV['MU_SPARQL_TIMEOUT'].to_i
       end
-      SPARQL::Client.new(ENV['MU_SPARQL_ENDPOINT'], options)
+      SPARQL::Client.new(ENV['MU_SPARQL_ENDPOINT'], **options)
     end
 
     def self.query(query)
