@@ -10,6 +10,8 @@ login:
   image: semtech/mu-login-service:3.0.0
   links:
     - database:database
+  environment:
+    - ALLOW_MU_AUTH_SUDO: true
 ```
 
 The triplestore used in the backend is linked to the login service container as `database`.
@@ -36,7 +38,7 @@ The following enviroment variables can be set on the login service:
 - **USERS_GRAPH** : graph in which the person and account resources will be stored. E.g. `http://mu.semte.ch/graphs/users`. Defaults to `http://mu.semte.ch/application`.
 - **SESSIONS_GRAPH** : graph in which the session resources will be stored. E.g. `http://mu.semte.ch/graphs/sessions`. Defaults to `http://mu.semte.ch/application`.
 - **MU_APPLICATION_SALT** : strengthen the password hashing by configuring an application wide salt. This salt will be concatenated with a salt generated per user to hash the user passwords. By default the application wide salt is not set. If you configure this salt, make sure to configure the [registration microservice](https://github.com/mu-semtech/registration-service) with the same salt. Setting the salt makes account resources non-shareable with stacks containing a login-service configured with another salt.
-- **ALLOW_MU_AUTH_SUDO**: allows the service to execute SPARQL queries with full permissions (`mu-auth-sudo`), bypassing current-session access rights to manage sessions and verify credentials. Defaults to `true`.
+- **ALLOW_MU_AUTH_SUDO**: allows the service to execute SPARQL queries with full permissions (`mu-auth-sudo`), bypassing current-session access rights to manage sessions and verify credentials. Defaults to `false`.
 
 ### Model
 This section describes the minimal required model for the login service. These models can be enriched with additional properties and/or relations.
