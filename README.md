@@ -7,7 +7,7 @@ Add the following snippet to your `docker-compose.yml` to include the login serv
 
 ```
 login:
-  image: semtech/mu-login-service:3.0.0
+  image: semtech/mu-login-service:3.1.0
   links:
     - database:database
   environment:
